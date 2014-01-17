@@ -13,9 +13,9 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.roots.ContentEntry;
-import com.intellij.openapi.roots.ModifiableRootModel;
-import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.roots.*;
+import com.intellij.openapi.roots.libraries.Library;
+import com.intellij.openapi.roots.libraries.LibraryTable;
 import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.WriteExternalException;
 import org.apache.commons.lang.StringUtils;
@@ -47,23 +47,25 @@ public class DoStuffAction extends AnAction {
         assert junitType.getConfigurationFactories().length == 1;
         assert appType.getConfigurationFactories().length == 1;
 
-        File testsDir = new File("/home/tmtynkky/Kotlin/k2014-tira-paja");
-        for (final File exerciseDir : testsDir.listFiles()) {
-            processExercise(moduleManager, runManager, junitType.getConfigurationFactories()[0], exerciseDir);
-        }
+
 
         Module[] modules = moduleManager.getModules();
         ArrayList<String> names = new ArrayList<String>();
         for (Module module : modules) {
             ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(module);
+            ProjectRootManager projectRootManager = ProjectRootManager.getInstance(project);
+            LibraryTable moduleLibraryTable = moduleRootManager.getModifiableModel().getModuleLibraryTable();
+
             String[] contentRootUrls = moduleRootManager.getContentRootUrls();
             String[] sourceRootUrls = moduleRootManager.getSourceRootUrls();
+            Library[] libraries = moduleRootManager.getModifiableModel().getModuleLibraryTable().getLibraries();
             Sdk sdk = moduleRootManager.getSdk();
 
             String s = module.getName() + "(" +
                     module.getModuleFilePath() + "," +
                     " { " + StringUtils.join(contentRootUrls, ", ") + " }, " +
                     " { " + StringUtils.join(sourceRootUrls, ", ") + " }, " +
+                    " { " + StringUtils.join(libraries, ", ") + " }, " +
                     (sdk != null ? sdk.toString() : "<no sdk>") + ", " + ")";
             names.add(s);
             LOG.warn(s);
@@ -83,6 +85,11 @@ public class DoStuffAction extends AnAction {
             LOG.warn("Config: " + config.getType() + " -> " + element);
         }
 
+        File testsDir = new File("/home/tmtynkky/Kotlin/k2014-tira-paja");
+        for (final File exerciseDir : testsDir.listFiles()) {
+            processExercise(moduleManager, runManager, junitType.getConfigurationFactories()[0], exerciseDir);
+        }
+
     }
 
     private void processExercise(final ModuleManager moduleManager, final RunManager runManager, final ConfigurationFactory junitFactory, final File exerciseDir) {
@@ -95,12 +102,18 @@ public class DoStuffAction extends AnAction {
                 Module module = moduleManager.newModule(projectFile, "JAVA_MODULE");
                 ModuleRootManager rootManager = ModuleRootManager.getInstance(module);
                 ModifiableRootModel modifiableModel = rootManager.getModifiableModel();
+                LibraryTable moduleLibraryTable = modifiableModel.getModuleLibraryTable();
 
                 String exerciseDirUrl = "file://" + exerciseDir.getAbsolutePath();
                 ContentEntry contentEntry = modifiableModel.addContentEntry(exerciseDirUrl);
                 contentEntry.addSourceFolder(exerciseDirUrl + "/src", false);
                 contentEntry.addSourceFolder(exerciseDirUrl + "/test", true);
                 modifiableModel.inheritSdk();
+
+                Library library = moduleLibraryTable.createLibrary("libs");
+                Library.ModifiableModel libraryModifiableModel = library.getModifiableModel();
+                libraryModifiableModel.addJarDirectory(exerciseDirUrl + "/lib", true);
+                libraryModifiableModel.commit();
                 modifiableModel.commit();
 
                 RunnerAndConfigurationSettings runConfiguration = runManager.createRunConfiguration("Test " + exerciseName, junitFactory);
