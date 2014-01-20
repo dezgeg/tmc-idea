@@ -37,6 +37,10 @@
             <add-to-group group-id="MainMenu" anchor="last"/>
             <action id="TMC.Menu.DoStuff" class="fi.iki.dezgeg.tmc.idea.DoStuffAction" text="Do stuff"
                     description="Do stuff"/>
+            <action id="TMC.Menu.ListModules" class="fi.iki.dezgeg.tmc.idea.ListModulesAction" text="List modules"
+                    description="List modules"/>
+            <action id="TMC.Menu.DestroyModules" class="fi.iki.dezgeg.tmc.idea.DestroyModulesAction" text="Destroy modules"
+                    description="Destroy modules"/>
         </group>
     </actions>
 
