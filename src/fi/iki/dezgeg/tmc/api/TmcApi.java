@@ -1,8 +1,10 @@
 package fi.iki.dezgeg.tmc.api;
 
 import com.google.gson.*;
+import org.apache.commons.io.IOUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.URIBuilder;
@@ -20,20 +22,22 @@ import java.util.*;
 
 public class TmcApi {
     private static final String API_VERSION = "7";
-    private static String SERVER_URL = "http://tmc.mooc.fi/hy/";
+    public static String DEFAULT_SERVER_URL = "http://tmc.mooc.fi/hy/";
     private final Gson gson;
     private Header authHeader;
-    private DefaultHttpClient httpClient;
 
-    public TmcApi(String username, String password) {
-        httpClient = new DefaultHttpClient();
-        authHeader = BasicScheme.authenticate(new UsernamePasswordCredentials(username, password), "US-ASCII", false);
+    public TmcApi() {
         gson = new GsonBuilder().registerTypeAdapter(Date.class, new CustomDateDeserializer()).create();
     }
 
     public static void main(String[] args) {
-        TmcApi tmc = new TmcApi("dezgeg", "dezgeg");
+        TmcApi tmc = new TmcApi();
+        tmc.setCredentials("dezgeg", "dezgeg");
         System.out.println(tmc.getExercises(tmc.getCourses().get("k2014-tira-paja")));
+    }
+
+    public void setCredentials(String username, String password) {
+        authHeader = BasicScheme.authenticate(new UsernamePasswordCredentials(username, password), "US-ASCII", false);
     }
 
     private InputStreamReader makeJsonRequest(String url) {
@@ -46,20 +50,42 @@ public class TmcApi {
             throw new RuntimeException(e);
         }
 
+        DefaultHttpClient httpClient = new DefaultHttpClient();
         HttpGet get = new HttpGet(uri);
         get.addHeader(authHeader);
         InputStreamReader reader;
+        HttpResponse response;
         try {
-            HttpResponse response = httpClient.execute(get);
+            response = httpClient.execute(get);
             reader = new InputStreamReader(response.getEntity().getContent());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+
+        if (response.getStatusLine().getStatusCode() == 403) {
+            // Give a more informative error.
+            throw new TmcException("Invalid username or password");
+        } else if (response.getStatusLine().getStatusCode() != 200) {
+            String content = null;
+            try {
+                content = IOUtils.toString(response.getEntity().getContent());
+            } catch (IOException e) {
+                content = e.toString();
+            }
+            String s;
+            JsonObject json = gson.fromJson(content, JsonObject.class);
+            if (json == null || json.get("error") == null)
+                s = "Unknown error response from server: " + content;
+            else
+                s = json.get("error").getAsString();
+            throw new TmcException(s != null ? s : "Unknown error JSON from server: " + json.toString());
+        }
+
         return reader;
     }
 
     public Map<String, Course> getCourses() {
-        InputStreamReader reader = makeJsonRequest(SERVER_URL + "courses.json");
+        InputStreamReader reader = makeJsonRequest(DEFAULT_SERVER_URL + "courses.json");
         JsonObject json = gson.fromJson(reader, JsonObject.class);
 
         HashMap<String, Course> courses = new HashMap<String, Course>();
