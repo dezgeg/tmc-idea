@@ -1,6 +1,7 @@
 package fi.iki.dezgeg.tmc.idea.gui;
 
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.Pair;
 import fi.iki.dezgeg.tmc.api.TmcApi;
 import fi.iki.dezgeg.tmc.api.TmcException;
 
@@ -10,20 +11,20 @@ import javax.swing.event.DocumentListener;
 
 public class AccountConfigStep extends CourseWizardStep {
     private JPanel panel;
-    private JTextField serverTextField;
     private JTextField usernameTextField;
     private JPasswordField passwordTextField;
+    private JComboBox<String> serverCombobox;
 
     public AccountConfigStep(CourseWizard wizard) {
         super(wizard);
         usernameTextField.getDocument().addDocumentListener(wizard.updateButtonsListener);
         passwordTextField.getDocument().addDocumentListener(wizard.updateButtonsListener);
-    }
 
-    @Override
-    public void _init() {
-        super._init();
-        serverTextField.setText(TmcApi.DEFAULT_SERVER_URL);
+        DefaultComboBoxModel<String> model = new DefaultComboBoxModel<String>();
+        for (Pair<String, String> pair : TmcApi.DEFAULT_SERVERS) {
+            model.addElement(String.format("%s (%s)", pair.first, pair.second));
+        }
+        serverCombobox.setModel(model);
     }
 
     @Override
@@ -33,7 +34,8 @@ public class AccountConfigStep extends CourseWizardStep {
 
     @Override
     public boolean validate() {
-        wizard.tmcApi.setCredentials(serverTextField.getText(), usernameTextField.getText(), new String(passwordTextField.getPassword()));
+        wizard.tmcApi.setCredentials(TmcApi.DEFAULT_SERVERS.get(serverCombobox.getSelectedIndex()).second,
+                usernameTextField.getText(), new String(passwordTextField.getPassword()));
         try {
             wizard.courseList = wizard.tmcApi.getCourses();
         } catch (TmcException tmce) {

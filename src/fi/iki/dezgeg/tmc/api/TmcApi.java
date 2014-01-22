@@ -1,6 +1,7 @@
 package fi.iki.dezgeg.tmc.api;
 
 import com.google.gson.*;
+import com.intellij.openapi.util.Pair;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
@@ -21,8 +22,13 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class TmcApi {
+    public static final String DEFAULT_SERVER_URL = "http://tmc.mooc.fi/hy/";
+    public static final List<Pair<String, String>> DEFAULT_SERVERS = Arrays.asList(
+            new Pair<String, String>("University of Helsinki", "http://tmc.mooc.fi/hy/"),
+            new Pair<String, String>("MOOC", "http://tmc.mooc.fi/mooc/")
+    );
+
     private static final String API_VERSION = "7";
-    public static String DEFAULT_SERVER_URL = "http://tmc.mooc.fi/hy/";
 
     private String serverUrl;
     private Gson gson;
