@@ -5,6 +5,8 @@ import fi.iki.dezgeg.tmc.api.TmcApi;
 import fi.iki.dezgeg.tmc.api.TmcException;
 
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 public class AccountConfigStep extends CourseWizardStep {
     private JPanel panel;
@@ -20,6 +22,8 @@ public class AccountConfigStep extends CourseWizardStep {
     public void _init() {
         super._init();
         serverTextField.setText(TmcApi.DEFAULT_SERVER_URL);
+        usernameTextField.getDocument().addDocumentListener(wizard.updateButtonsListener);
+        passwordTextField.getDocument().addDocumentListener(wizard.updateButtonsListener);
     }
 
     @Override
@@ -38,5 +42,11 @@ public class AccountConfigStep extends CourseWizardStep {
             return false;
         }
         return true;
+    }
+
+    @Override
+    public boolean canGoNext() {
+        return !usernameTextField.getText().isEmpty() &&
+                passwordTextField.getPassword().length != 0;
     }
 }

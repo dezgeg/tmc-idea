@@ -7,11 +7,14 @@ import fi.iki.dezgeg.tmc.api.Course;
 import fi.iki.dezgeg.tmc.api.TmcApi;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import java.util.Map;
 
 public class CourseWizard extends AbstractWizard<CourseWizardStep> {
     protected TmcApi tmcApi;
     protected Map<String, Course> courseList;
+    protected DocumentListener updateButtonsListener = new UpdateButtonsListener();
 
     public CourseWizard(@Nullable Project project) {
         super("Start new TMC course", project);
@@ -19,6 +22,13 @@ public class CourseWizard extends AbstractWizard<CourseWizardStep> {
         addStep(new AccountConfigStep(this));
         addStep(new CourseSelectionStep(this));
         init();
+    }
+
+    @Override
+    protected boolean canGoNext() {
+        if (!getCurrentStepObject().canGoNext())
+            return false;
+        return super.canGoNext();
     }
 
     @Override
@@ -32,5 +42,22 @@ public class CourseWizard extends AbstractWizard<CourseWizardStep> {
     @Override
     protected String getHelpID() {
         return null;
+    }
+
+    private class UpdateButtonsListener implements DocumentListener {
+        @Override
+        public void insertUpdate(DocumentEvent documentEvent) {
+            updateButtons();
+        }
+
+        @Override
+        public void removeUpdate(DocumentEvent documentEvent) {
+            updateButtons();
+        }
+
+        @Override
+        public void changedUpdate(DocumentEvent documentEvent) {
+            updateButtons();
+        }
     }
 }

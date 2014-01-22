@@ -1,6 +1,8 @@
 package fi.iki.dezgeg.tmc.idea.gui;
 
 import javax.swing.*;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
 public class CourseSelectionStep extends CourseWizardStep {
     private JPanel panel;
@@ -18,6 +20,17 @@ public class CourseSelectionStep extends CourseWizardStep {
             model.addElement(course);
         }
         courseListbox.setModel(model);
+        courseListbox.addListSelectionListener(new ListSelectionListener() {
+            @Override
+            public void valueChanged(ListSelectionEvent listSelectionEvent) {
+                wizard.updateButtonsListener.changedUpdate(null);
+            }
+        });
+    }
+
+    @Override
+    public boolean canGoNext() {
+        return courseListbox.getSelectedIndex() >= 0;
     }
 
     @Override

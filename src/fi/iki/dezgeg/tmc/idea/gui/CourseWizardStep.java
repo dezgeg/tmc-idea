@@ -16,4 +16,8 @@ public class CourseWizardStep extends StepAdapter {
     public boolean validate() {
         return true;
     }
+
+    public boolean canGoNext() {
+        return true;
+    }
 }
