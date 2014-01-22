@@ -51,14 +51,14 @@ public class DoStuffAction extends AnAction {
 
         File testsDir = new File("/home/tmtynkky/Kotlin/k2014-tira-paja");
         for (final File exerciseDir : testsDir.listFiles()) {
-            processExercise(project, moduleManager,
+            processExercise(project,
                     junitType.getConfigurationFactories()[0], appType.getConfigurationFactories()[0], exerciseDir);
         }
 
     }
 
-    private void processExercise(final Project project, final ModuleManager moduleManager,
-                                 final ConfigurationFactory junitFactory, final ConfigurationFactory appFactory, final File exerciseDir) {
+    private void processExercise(final Project project, final ConfigurationFactory junitFactory, final ConfigurationFactory appFactory, final File exerciseDir) {
+        final ModuleManager moduleManager = ModuleManager.getInstance(project);
         final RunManager runManager = RunManager.getInstance(project);
         final String projectFile = exerciseDir.getAbsolutePath() + File.separator + exerciseDir.getName() + ".iml";
         final String exerciseName = exerciseDir.getName();
@@ -84,23 +84,27 @@ public class DoStuffAction extends AnAction {
                 modifiableModel.commit();
 
                 createRunTestsConfiguration(runManager, exerciseName, junitFactory);
-                GlobalSearchScope moduleScope = module.getModuleScope(false);
-                Query<PsiClass> search = AllClassesSearch.search(moduleScope, project);
-                search.forEach(new Processor<PsiClass>() {
-                    @Override
-                    public boolean process(PsiClass psiClass) {
-                        if (PsiMethodUtil.hasMainMethod(psiClass)) {
-                            createRunMainConfiguration(runManager, exerciseName, appFactory, psiClass);
-                            LOG.warn(psiClass.toString());
-                        }
-                        return true;
-                    }
-                });
+                createRunMainConfiguration(module, project, runManager, exerciseName, appFactory);
             }
         });
     }
 
-    private void createRunMainConfiguration(RunManager runManager, String exerciseName, ConfigurationFactory appFactory, PsiClass mainClass) {
+    private void createRunMainConfiguration(Module module, Project project, final RunManager runManager, final String exerciseName, final ConfigurationFactory appFactory) {
+        GlobalSearchScope moduleScope = module.getModuleScope(false);
+        Query<PsiClass> search = AllClassesSearch.search(moduleScope, project);
+        search.forEach(new Processor<PsiClass>() {
+            @Override
+            public boolean process(PsiClass psiClass) {
+                if (PsiMethodUtil.hasMainMethod(psiClass)) {
+                    createRunMainConfigurationForClass(runManager, exerciseName, appFactory, psiClass);
+                    LOG.warn(psiClass.toString());
+                }
+                return true;
+            }
+        });
+    }
+
+    private void createRunMainConfigurationForClass(RunManager runManager, String exerciseName, ConfigurationFactory appFactory, PsiClass mainClass) {
         RunnerAndConfigurationSettings runTestsConfiguration = runManager.createRunConfiguration("Run " + exerciseName, appFactory);
         Element e = new Element("configuration");
         setOption(e, "module", exerciseName, null);
