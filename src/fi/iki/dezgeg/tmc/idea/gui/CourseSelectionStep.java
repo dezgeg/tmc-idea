@@ -8,8 +8,14 @@ public class CourseSelectionStep extends CourseWizardStep {
     private JPanel panel;
     private JList<String> courseListbox;
 
-    public CourseSelectionStep(CourseWizard wizard) {
+    public CourseSelectionStep(final CourseWizard wizard) {
         super(wizard);
+        courseListbox.addListSelectionListener(new ListSelectionListener() {
+            @Override
+            public void valueChanged(ListSelectionEvent listSelectionEvent) {
+                wizard.updateButtonsListener.changedUpdate(null);
+            }
+        });
     }
 
     @Override
@@ -20,12 +26,6 @@ public class CourseSelectionStep extends CourseWizardStep {
             model.addElement(course);
         }
         courseListbox.setModel(model);
-        courseListbox.addListSelectionListener(new ListSelectionListener() {
-            @Override
-            public void valueChanged(ListSelectionEvent listSelectionEvent) {
-                wizard.updateButtonsListener.changedUpdate(null);
-            }
-        });
     }
 
     @Override

@@ -23,7 +23,9 @@ import java.util.*;
 public class TmcApi {
     private static final String API_VERSION = "7";
     public static String DEFAULT_SERVER_URL = "http://tmc.mooc.fi/hy/";
-    private final Gson gson;
+
+    private String serverUrl;
+    private Gson gson;
     private Header authHeader;
 
     public TmcApi() {
@@ -32,11 +34,12 @@ public class TmcApi {
 
     public static void main(String[] args) {
         TmcApi tmc = new TmcApi();
-        tmc.setCredentials("dezgeg", "dezgeg");
+        tmc.setCredentials(DEFAULT_SERVER_URL, "dezgeg", "dezgeg");
         System.out.println(tmc.getExercises(tmc.getCourses().get("k2014-tira-paja")));
     }
 
-    public void setCredentials(String username, String password) {
+    public void setCredentials(String server, String username, String password) {
+        serverUrl = server.replaceFirst("/*$", "/");
         authHeader = BasicScheme.authenticate(new UsernamePasswordCredentials(username, password), "US-ASCII", false);
     }
 
@@ -47,7 +50,7 @@ public class TmcApi {
             builder.setParameter("api_version", API_VERSION);
             uri = builder.build();
         } catch (URISyntaxException e) {
-            throw new RuntimeException(e);
+            throw new TmcException("Invalid server URL: " + e.getMessage(), e);
         }
 
         DefaultHttpClient httpClient = new DefaultHttpClient();
@@ -58,34 +61,40 @@ public class TmcApi {
         try {
             response = httpClient.execute(get);
             reader = new InputStreamReader(response.getEntity().getContent());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        } catch (Exception e) {
+            throw new TmcException("Connection error: " + e.getMessage(), e);
         }
 
-        if (response.getStatusLine().getStatusCode() == 403) {
-            // Give a more informative error.
+        // Give a more informative errors for 403 & 404.
+        int status = response.getStatusLine().getStatusCode();
+        if (status == 403) {
             throw new TmcException("Invalid username or password");
-        } else if (response.getStatusLine().getStatusCode() != 200) {
+        } else if (status == 404) {
+            throw new TmcException("Server replied with HTTP status 404. Is the server URL correct?");
+        } else if (status != 200) {
             String content = null;
             try {
                 content = IOUtils.toString(response.getEntity().getContent());
             } catch (IOException e) {
                 content = e.toString();
             }
-            String s;
-            JsonObject json = gson.fromJson(content, JsonObject.class);
-            if (json == null || json.get("error") == null)
-                s = "Unknown error response from server: " + content;
-            else
-                s = json.get("error").getAsString();
-            throw new TmcException(s != null ? s : "Unknown error JSON from server: " + json.toString());
+
+            Throwable cause = null;
+            try {
+                JsonObject json = gson.fromJson(content, JsonObject.class);
+                throw new TmcException(json.get("error").getAsString());
+            } catch (Exception e) {
+                // Very robust exception catching
+                throw new TmcException("Unknown error response: " + content, cause);
+            }
+
         }
 
         return reader;
     }
 
     public Map<String, Course> getCourses() {
-        InputStreamReader reader = makeJsonRequest(DEFAULT_SERVER_URL + "courses.json");
+        InputStreamReader reader = makeJsonRequest(serverUrl + "courses.json");
         JsonObject json = gson.fromJson(reader, JsonObject.class);
 
         HashMap<String, Course> courses = new HashMap<String, Course>();

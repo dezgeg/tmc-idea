@@ -16,14 +16,14 @@ public class AccountConfigStep extends CourseWizardStep {
 
     public AccountConfigStep(CourseWizard wizard) {
         super(wizard);
+        usernameTextField.getDocument().addDocumentListener(wizard.updateButtonsListener);
+        passwordTextField.getDocument().addDocumentListener(wizard.updateButtonsListener);
     }
 
     @Override
     public void _init() {
         super._init();
         serverTextField.setText(TmcApi.DEFAULT_SERVER_URL);
-        usernameTextField.getDocument().addDocumentListener(wizard.updateButtonsListener);
-        passwordTextField.getDocument().addDocumentListener(wizard.updateButtonsListener);
     }
 
     @Override
@@ -33,10 +33,11 @@ public class AccountConfigStep extends CourseWizardStep {
 
     @Override
     public boolean validate() {
-        wizard.tmcApi.setCredentials(usernameTextField.getText(), new String(passwordTextField.getPassword()));
+        wizard.tmcApi.setCredentials(serverTextField.getText(), usernameTextField.getText(), new String(passwordTextField.getPassword()));
         try {
             wizard.courseList = wizard.tmcApi.getCourses();
         } catch (TmcException tmce) {
+            tmce.printStackTrace();
             Messages.showErrorDialog(tmce.getMessage(), "Error logging in to TMC");
             wizard.courseList = null;
             return false;
