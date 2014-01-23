@@ -2,24 +2,26 @@ package fi.iki.dezgeg.tmc.api;
 
 import com.google.gson.*;
 import com.intellij.openapi.util.Pair;
+import org.apache.commons.collections.IteratorUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.DefaultHttpClient;
 
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.lang.reflect.Type;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 public class TmcApi {
     public static final String DEFAULT_SERVER_URL = "http://tmc.mooc.fi/hy/";
@@ -41,7 +43,11 @@ public class TmcApi {
     public static void main(String[] args) {
         TmcApi tmc = new TmcApi();
         tmc.setCredentials(DEFAULT_SERVER_URL, "dezgeg", "dezgeg");
-        System.out.println(tmc.getExercises(tmc.getCourses().get("k2014-tira-paja")));
+        Course course = tmc.getCourses().get("k2014-tira-paja");
+        Exercise exercise = tmc.getExercises(course).get("viikko1-01.4.PieninSuurin");
+
+        System.out.println(exercise);
+        tmc.downloadExercise(exercise, "/tmp/foo/");
     }
 
     public void setCredentials(String server, String username, String password) {
@@ -49,7 +55,11 @@ public class TmcApi {
         authHeader = BasicScheme.authenticate(new UsernamePasswordCredentials(username, password), "US-ASCII", false);
     }
 
-    private InputStreamReader makeJsonRequest(String url) {
+    private InputStreamReader makeTextRequest(String url) {
+        return new InputStreamReader(makeBinaryRequest(url), StandardCharsets.UTF_8);
+    }
+
+    private InputStream makeBinaryRequest(String url) {
         URI uri;
         try {
             URIBuilder builder = new URIBuilder(url);
@@ -62,11 +72,9 @@ public class TmcApi {
         DefaultHttpClient httpClient = new DefaultHttpClient();
         HttpGet get = new HttpGet(uri);
         get.addHeader(authHeader);
-        InputStreamReader reader;
         HttpResponse response;
         try {
             response = httpClient.execute(get);
-            reader = new InputStreamReader(response.getEntity().getContent());
         } catch (Exception e) {
             throw new TmcException("Connection error: " + e.getMessage(), e);
         }
@@ -95,15 +103,18 @@ public class TmcApi {
             }
 
         }
-
-        return reader;
+        try {
+            return response.getEntity().getContent();
+        } catch (Exception e) {
+            throw new TmcException("Connection error: " + e.getMessage(), e);
+        }
     }
 
     public Map<String, Course> getCourses() {
-        InputStreamReader reader = makeJsonRequest(serverUrl + "courses.json");
+        InputStreamReader reader = makeTextRequest(serverUrl + "courses.json");
         JsonObject json = gson.fromJson(reader, JsonObject.class);
 
-        HashMap<String, Course> courses = new HashMap<String, Course>();
+        Map<String, Course> courses = new TreeMap<String, Course>();
         for (JsonElement courseJson : json.getAsJsonArray("courses")) {
             Course c = gson.fromJson(courseJson, Course.class);
             courses.put(c.getName(), c);
@@ -113,17 +124,47 @@ public class TmcApi {
     }
 
     public Map<String, Exercise> getExercises(Course course) {
-        InputStreamReader reader = makeJsonRequest(course.getDetailsUrl());
+        InputStreamReader reader = makeTextRequest(course.getDetailsUrl());
         JsonObject json = gson.fromJson(reader, JsonObject.class);
         System.out.println(json);
 
-        Map<String, Exercise> exercises = new HashMap<String, Exercise>();
+        Map<String, Exercise> exercises = new TreeMap<String, Exercise>();
         for (JsonElement exerciseJson : json.getAsJsonObject("course").getAsJsonArray("exercises")) {
             Exercise e = gson.fromJson(exerciseJson, Exercise.class);
             e.setCourse(course);
             exercises.put(e.getName(), e);
         }
         return exercises;
+    }
+
+    public void downloadExercise(Exercise exercise, String courseDir) {
+        try {
+            InputStream zipIn = makeBinaryRequest(exercise.getDownloadUrl());
+            File tempFile = File.createTempFile("tmc-exercise-" + exercise.getName(), ".zip");
+            tempFile.deleteOnExit();
+            BufferedOutputStream zipOut = new BufferedOutputStream(new FileOutputStream(tempFile));
+            IOUtils.copy(zipIn, zipOut);
+            zipOut.close();
+            zipIn.close();
+
+            ZipFile zipFile = new ZipFile(tempFile);
+            Iterator<? extends ZipEntry> it = IteratorUtils.asIterator(zipFile.entries());
+            while (it.hasNext()) {
+                ZipEntry zipEntry = it.next();
+                if (zipEntry.isDirectory())
+                    continue;
+
+                File f = new File(courseDir, zipEntry.getName());
+                f.getParentFile().mkdirs();
+                InputStream fileIn = zipFile.getInputStream(zipEntry);
+                BufferedOutputStream fileOut = new BufferedOutputStream(new FileOutputStream(f));
+                IOUtils.copy(fileIn, fileOut);
+                fileOut.close();
+                fileIn.close();
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
 

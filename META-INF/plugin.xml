@@ -39,6 +39,8 @@
                     description="Do stuff"/>
             <action id="TMC.Menu.Settings" class="fi.iki.dezgeg.tmc.idea.SettingsAction" text="Settings"
                     description="Settings"/>
+            <action id="TMC.Menu.Download" class="fi.iki.dezgeg.tmc.idea.DownloadAction" text="Download"
+                    description="Download"/>
             <action id="TMC.Menu.ListModules" class="fi.iki.dezgeg.tmc.idea.ListModulesAction" text="List modules"
                     description="List modules"/>
             <action id="TMC.Menu.DestroyModules" class="fi.iki.dezgeg.tmc.idea.DestroyModulesAction" text="Destroy modules"
