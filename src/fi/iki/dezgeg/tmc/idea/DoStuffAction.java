@@ -16,6 +16,7 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
@@ -29,13 +30,15 @@ import com.intellij.psi.search.searches.AllClassesSearch;
 import com.intellij.psi.util.PsiMethodUtil;
 import com.intellij.util.Processor;
 import com.intellij.util.Query;
-import fi.iki.dezgeg.tmc.api.Course;
-import fi.iki.dezgeg.tmc.api.Exercise;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.DirectoryFileFilter;
+import org.apache.commons.io.filefilter.NameFileFilter;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.Collections;
 
 public class DoStuffAction extends AnAction {
     Logger LOG = Logger.getInstance(DoStuffAction.class);
@@ -58,7 +61,7 @@ public class DoStuffAction extends AnAction {
         assert junitType.getConfigurationFactories().length == 1;
         assert appType.getConfigurationFactories().length == 1;
 
-        final File testsDir = new File("/home/tmtynkky/Kotlin/k2014-tira-paja");
+        final File testsDir = new File("/tmp/foo");
 
         final ConfigurationType finalJunitType = junitType;
         final ConfigurationType finalAppType = appType;
@@ -67,15 +70,18 @@ public class DoStuffAction extends AnAction {
             @Override
             public void run(@NotNull final ProgressIndicator progressIndicator) {
                 int i = 0;
-                final File[] files = testsDir.listFiles();
-                for (final File exerciseDir : files) {
+                final ArrayList<File> files = new ArrayList<File>(FileUtils.listFiles(testsDir, new NameFileFilter("build.xml"), DirectoryFileFilter.DIRECTORY));
+                Collections.sort(files);
+                for (File f : files) {
+                    final File exerciseDir = f.getParentFile();
+
                     final int finalI = i;
                     final Module[] outModule = new Module[1];
                     ApplicationManager.getApplication().invokeAndWait(new Runnable() {
                         @Override
                         public void run() {
                             progressIndicator.setText2("Importing exercise " + exerciseDir.getName());
-                            progressIndicator.setFraction((double) finalI / files.length);
+                            progressIndicator.setFraction((double) finalI / files.size());
 
                             outModule[0] = processExercise(project, finalJunitType.getConfigurationFactories()[0],
                                     exerciseDir);
@@ -127,23 +133,31 @@ public class DoStuffAction extends AnAction {
     }
 
     private void createRunMainConfiguration(final Module module, final Project project, final RunManager runManager, final String exerciseName, final ConfigurationFactory appFactory) {
-        ApplicationManager.getApplication().runReadAction(new Runnable() {
+        Runnable runnable = new Runnable() {
             @Override
             public void run() {
-                GlobalSearchScope moduleScope = module.getModuleScope(false);
-                Query<PsiClass> search = AllClassesSearch.search(moduleScope, project);
-                search.forEach(new Processor<PsiClass>() {
-                    @Override
-                    public boolean process(PsiClass psiClass) {
-                        if (PsiMethodUtil.hasMainMethod(psiClass)) {
-                            createRunMainConfigurationForClass(runManager, exerciseName, appFactory, psiClass);
-                            return false;
-                        }
-                        return true;
-                    }
-                });
+                ApplicationManager.getApplication().
+                        runReadAction(new Runnable() {
+                                          @Override
+                                          public void run() {
+                                              GlobalSearchScope moduleScope = module.getModuleScope(false);
+                                              Query<PsiClass> search = AllClassesSearch.search(moduleScope, project);
+                                              search.forEach(new Processor<PsiClass>() {
+                                                  @Override
+                                                  public boolean process(PsiClass psiClass) {
+                                                      if (PsiMethodUtil.hasMainMethod(psiClass)) {
+                                                          createRunMainConfigurationForClass(runManager, exerciseName, appFactory, psiClass);
+                                                          return false;
+                                                      }
+                                                      return true;
+                                                  }
+                                              });
+                                          }
+                                      }
+                        );
             }
-        });
+        };
+        DumbService.getInstance(project).smartInvokeLater(runnable);
     }
 
     private void createRunMainConfigurationForClass(RunManager runManager, String exerciseName, ConfigurationFactory appFactory, PsiClass mainClass) {

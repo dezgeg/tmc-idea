@@ -5,12 +5,20 @@ import com.intellij.openapi.util.Pair;
 import org.apache.commons.collections.IteratorUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.Header;
+import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
+import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.AuthCache;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.auth.BasicScheme;
-import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.BasicAuthCache;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.impl.client.HttpClientBuilder;
 
 import java.io.*;
 import java.lang.reflect.Type;
@@ -34,7 +42,7 @@ public class TmcApi {
 
     private String serverUrl;
     private Gson gson;
-    private Header authHeader;
+    private UsernamePasswordCredentials credentials;
 
     public TmcApi() {
         gson = new GsonBuilder().registerTypeAdapter(Date.class, new CustomDateDeserializer()).create();
@@ -52,7 +60,7 @@ public class TmcApi {
 
     public void setCredentials(String server, String username, String password) {
         serverUrl = server.replaceFirst("/*$", "/");
-        authHeader = BasicScheme.authenticate(new UsernamePasswordCredentials(username, password), "US-ASCII", false);
+        credentials = new UsernamePasswordCredentials(username, password);
     }
 
     private InputStreamReader makeTextRequest(String url) {
@@ -69,12 +77,22 @@ public class TmcApi {
             throw new TmcException("Invalid server URL: " + e.getMessage(), e);
         }
 
-        DefaultHttpClient httpClient = new DefaultHttpClient();
+        CredentialsProvider credProvider = new BasicCredentialsProvider();
+        credProvider.setCredentials(AuthScope.ANY, credentials);
+        HttpClient httpClient = HttpClientBuilder.create().setDefaultCredentialsProvider(credProvider).build();
+        HttpHost host = new HttpHost(uri.getHost(), uri.getPort(), "http");
         HttpGet get = new HttpGet(uri);
-        get.addHeader(authHeader);
+
         HttpResponse response;
         try {
-            response = httpClient.execute(get);
+            AuthCache authCache = new BasicAuthCache();
+            BasicScheme basicScheme = new BasicScheme();
+            authCache.put(host, basicScheme);
+
+            HttpClientContext context = HttpClientContext.create();
+            context.setAuthCache(authCache);
+
+            response = httpClient.execute(get, context);
         } catch (Exception e) {
             throw new TmcException("Connection error: " + e.getMessage(), e);
         }

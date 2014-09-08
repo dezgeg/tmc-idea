@@ -49,7 +49,7 @@ public class DownloadAction extends AnAction {
             public void run() {
                 ProgressIndicator progressIndicator = progressManager.getProgressIndicator();
                 progressIndicator.setText2("Downloading course information");
-                Course course = tmcApi.getCourses().get("k2014-tira-paja");
+                Course course = tmcApi.getCourses().get("s2014-tira");
 
                 Map<String,Exercise> exercises = tmcApi.getExercises(course);
                 int i = 0;
