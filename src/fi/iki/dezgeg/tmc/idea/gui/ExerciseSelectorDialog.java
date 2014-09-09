@@ -3,12 +3,14 @@ package fi.iki.dezgeg.tmc.idea.gui;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import fi.helsinki.cs.tmc.core.Core;
+import fi.helsinki.cs.tmc.core.async.tasks.DownloaderTask;
 import fi.helsinki.cs.tmc.core.domain.Course;
 import fi.helsinki.cs.tmc.core.domain.Exercise;
+import fi.helsinki.cs.tmc.core.services.ProjectDownloader;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.awt.event.*;
+import java.util.ArrayList;
 import java.util.List;
 
 public class ExerciseSelectorDialog extends DialogWrapper {
@@ -31,12 +33,6 @@ public class ExerciseSelectorDialog extends DialogWrapper {
         init();
     }
 
-    @Nullable
-    @Override
-    protected JComponent createCenterPanel() {
-        return contentPane;
-    }
-
     public static void showDialog(Project project) {
         Course currentCourse = Core.getCourseDAO().getCurrentCourse(Core.getSettings());
         Core.getUpdater().updateExercises(currentCourse);
@@ -46,5 +42,25 @@ public class ExerciseSelectorDialog extends DialogWrapper {
             return;
 
         new ExerciseSelectorDialog(downloadableExercises, project).show();
+    }
+
+    @Nullable
+    @Override
+    protected JComponent createCenterPanel() {
+        return contentPane;
+    }
+
+    @Override
+    protected void doOKAction() {
+        super.doOKAction();
+        List<Exercise> selectedExercises = new ArrayList<Exercise>();
+        for (int i : exerciseListBox.getSelectedIndices()) {
+            selectedExercises.add(exercises.get(i));
+        }
+
+        DownloaderTask task = new DownloaderTask(new ProjectDownloader(Core.getServerManager()),
+                new IdeaProjectOpener(), selectedExercises, Core.getProjectDAO(), Core.getSettings(),
+                new IdeaUIInvoker(), Core.getIOFactory());
+        Core.getTaskRunner().runTask(task);
     }
 }

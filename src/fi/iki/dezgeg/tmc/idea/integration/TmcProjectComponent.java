@@ -28,7 +28,7 @@ public class TmcProjectComponent implements ProjectComponent {
     public void projectOpened() {
         System.out.println("Hello world from TmcProjectComponent: " + project);
         Core.setErrorHandler(new IdeaTmcErrorHandler());
-        Core.setTaskRunner(new IdeaTmcTaskRunner());
+        Core.setTaskRunner(new IdeaTmcTaskRunner(project));
     }
 
     public void projectClosed() {
