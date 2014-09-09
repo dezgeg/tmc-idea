@@ -2,9 +2,6 @@ package fi.iki.dezgeg.tmc.api;
 
 import com.google.gson.annotations.SerializedName;
 
-import java.util.List;
-import java.util.Map;
-
 public class Course {
     private int id;
     private String name;

@@ -31,18 +31,23 @@
     <project-components>
         <component>
             <implementation-class>fi.iki.dezgeg.tmc.idea.integration.TmcProjectComponent</implementation-class>
-            <option name="workspace" value="true" />
+            <option name="workspace" value="true"/>
         </component>
     </project-components>
 
     <actions>
         <group id="TMC.Menu" text="_TMC" description="TestMyCode">
             <add-to-group group-id="MainMenu" anchor="last"/>
-            <action id="TMC.Menu.DoStuff" class="fi.iki.dezgeg.tmc.idea.DoStuffAction" text="Do stuff" description="Do stuff"/>
-            <action id="TMC.Menu.Settings" class="fi.iki.dezgeg.tmc.idea.SettingsAction" text="Settings" description="Settings"/>
-            <action id="TMC.Menu.Download" class="fi.iki.dezgeg.tmc.idea.DownloadAction" text="Download" description="Download"/>
-            <action id="TMC.Menu.ListModules" class="fi.iki.dezgeg.tmc.idea.ListModulesAction" text="List modules" description="List modules"/>
-            <action id="TMC.Menu.DestroyModules" class="fi.iki.dezgeg.tmc.idea.DestroyModulesAction" text="Destroy modules" description="Destroy modules"/>
+            <action id="TMC.Menu.DoStuff" class="fi.iki.dezgeg.tmc.idea.DoStuffAction" text="Do stuff"
+                    description="Do stuff"/>
+            <action id="TMC.Menu.Settings" class="fi.iki.dezgeg.tmc.idea.SettingsAction" text="Settings"
+                    description="Settings"/>
+            <action id="TMC.Menu.Download" class="fi.iki.dezgeg.tmc.idea.DownloadAction" text="Download"
+                    description="Download"/>
+            <action id="TMC.Menu.ListModules" class="fi.iki.dezgeg.tmc.idea.ListModulesAction" text="List modules"
+                    description="List modules"/>
+            <action id="TMC.Menu.DestroyModules" class="fi.iki.dezgeg.tmc.idea.DestroyModulesAction"
+                    text="Destroy modules" description="Destroy modules"/>
         </group>
     </actions>
 

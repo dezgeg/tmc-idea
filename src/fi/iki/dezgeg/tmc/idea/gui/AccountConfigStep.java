@@ -41,7 +41,8 @@ public class AccountConfigStep extends CourseWizardStep {
         Settings settings = Core.getSettings();
         String server = TmcApi.DEFAULT_SERVERS.get(serverCombobox.getSelectedIndex()).second;
 
-        wizard.tmcApi.setCredentials(server, usernameTextField.getText(), String.valueOf(passwordTextField.getPassword()));
+        wizard.tmcApi.setCredentials(server, usernameTextField.getText(), String.valueOf(passwordTextField
+                .getPassword()));
         settings.setUsername(usernameTextField.getText());
         settings.setPassword(String.valueOf(passwordTextField.getPassword()));
         settings.setServerBaseUrl(server);

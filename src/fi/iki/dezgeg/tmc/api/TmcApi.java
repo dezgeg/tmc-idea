@@ -4,7 +4,6 @@ import com.google.gson.*;
 import com.intellij.openapi.util.Pair;
 import org.apache.commons.collections.IteratorUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.http.Header;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.auth.AuthScope;

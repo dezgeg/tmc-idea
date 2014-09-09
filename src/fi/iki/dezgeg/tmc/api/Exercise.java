@@ -4,7 +4,6 @@ import com.google.gson.annotations.SerializedName;
 
 import java.io.Serializable;
 import java.util.Date;
-import java.util.GregorianCalendar;
 
 public class Exercise implements Serializable {
     private int id;
