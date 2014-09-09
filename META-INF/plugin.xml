@@ -44,10 +44,13 @@
                     description="Settings"/>
             <action id="TMC.Menu.Download" class="fi.iki.dezgeg.tmc.idea.DownloadAction" text="Download"
                     description="Download"/>
-            <action id="TMC.Menu.ReopenExercises" class="fi.iki.dezgeg.tmc.idea.ReopenExercisesAction" text="Reopen exercises"
+            <action id="TMC.Menu.ReopenExercises" class="fi.iki.dezgeg.tmc.idea.ReopenExercisesAction"
+                    text="Reopen exercises"
                     description="Reopen exercises"/>
             <action id="TMC.Menu.DestroyModules" class="fi.iki.dezgeg.tmc.idea.DestroyModulesAction"
                     text="Destroy modules" description="Destroy modules"/>
+            <action id="TMC.Menu.Submit" class="fi.iki.dezgeg.tmc.idea.SubmitAction"
+                    text="Submit to server" description="Submit to server"/>
         </group>
     </actions>
 
