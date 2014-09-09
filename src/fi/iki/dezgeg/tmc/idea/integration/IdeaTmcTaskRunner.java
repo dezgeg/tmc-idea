@@ -32,16 +32,19 @@ public class IdeaTmcTaskRunner implements BackgroundTaskRunner {
                     backgroundTaskListener.onBegin();
 
                 int ret = backgroundTask.start(new TaskStatusMonitor() {
+                    public int curSteps;
                     public int maxSteps;
 
                     @Override
                     public void startProgress(String status, int maxSteps) {
-                        progressIndicator.setText(status);
+                        progressIndicator.setText2(status);
+                        this.maxSteps = maxSteps;
                     }
 
                     @Override
-                    public void incrementProgress(int steps) {
-                        progressIndicator.setFraction((double) steps / maxSteps);
+                    public void incrementProgress(int increment) {
+                        curSteps += increment;
+                        progressIndicator.setFraction((double) curSteps / maxSteps);
                     }
 
                     @Override
