@@ -17,10 +17,12 @@ public class ExerciseSelectorDialog extends DialogWrapper {
     private JPanel contentPane;
     private JList<String> exerciseListBox;
 
+    private Project project;
     private List<Exercise> exercises;
 
     public ExerciseSelectorDialog(List<Exercise> downloadableExercises, Project project) {
         super(project);
+        this.project = project;
         this.exercises = downloadableExercises;
 
         DefaultListModel<String> listModel = new DefaultListModel<String>();
@@ -59,7 +61,7 @@ public class ExerciseSelectorDialog extends DialogWrapper {
         }
 
         DownloaderTask task = new DownloaderTask(new ProjectDownloader(Core.getServerManager()),
-                new IdeaProjectOpener(), selectedExercises, Core.getProjectDAO(), Core.getSettings(),
+                new IdeaProjectOpener(project), selectedExercises, Core.getProjectDAO(), Core.getSettings(),
                 new IdeaUIInvoker(), Core.getIOFactory());
         Core.getTaskRunner().runTask(task);
     }
