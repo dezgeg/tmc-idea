@@ -8,8 +8,6 @@ import fi.iki.dezgeg.tmc.api.TmcApi;
 import fi.iki.dezgeg.tmc.api.TmcException;
 
 import javax.swing.*;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 
 public class AccountConfigStep extends CourseWizardStep {
     private JPanel panel;
@@ -19,6 +17,10 @@ public class AccountConfigStep extends CourseWizardStep {
 
     public AccountConfigStep(CourseWizard wizard) {
         super(wizard);
+        usernameTextField.setText(Core.getSettings().getUsername());
+        passwordTextField.setText(Core.getSettings().getPassword());
+
+        // Don't add the listeners before setting the initial values!
         usernameTextField.getDocument().addDocumentListener(wizard.updateButtonsListener);
         passwordTextField.getDocument().addDocumentListener(wizard.updateButtonsListener);
 

@@ -1,5 +1,6 @@
 package fi.iki.dezgeg.tmc.idea.gui;
 
+import com.intellij.ide.wizard.CommitStepException;
 import fi.helsinki.cs.tmc.core.Core;
 import fi.helsinki.cs.tmc.core.services.DomainUtil;
 
@@ -34,6 +35,22 @@ public class CourseSelectionStep extends CourseWizardStep {
         for (String courseName : DomainUtil.getCourseNames(Core.getCourseDAO().getCourses())) {
             System.out.println("Course names from plugin-core: " + courseName);
         }
+    }
+
+    @Override
+    public void _commit(boolean finishChosen) throws CommitStepException {
+        super._commit(finishChosen);
+        Core.getSettings().setCurrentCourseName(courseListbox.getSelectedValue());
+        System.out.println("Committed course: " + Core.getSettings().getCurrentCourseName());
+        Core.getSettings().save(); // TODO: not here
+
+        // XXX REVISIT: is the invokeLater needed?
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                ExerciseSelectorDialog.showDialog(wizard.project);
+            }
+        });
     }
 
     @Override

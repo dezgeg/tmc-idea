@@ -1,7 +1,6 @@
 package fi.iki.dezgeg.tmc.idea.gui;
 
 import com.intellij.ide.wizard.AbstractWizard;
-import com.intellij.ide.wizard.Step;
 import com.intellij.openapi.project.Project;
 import fi.iki.dezgeg.tmc.api.Course;
 import fi.iki.dezgeg.tmc.api.TmcApi;
@@ -15,9 +14,12 @@ public class CourseWizard extends AbstractWizard<CourseWizardStep> {
     protected TmcApi tmcApi;
     protected Map<String, Course> courseList;
     protected DocumentListener updateButtonsListener = new UpdateButtonsListener();
+    protected Project project;
 
     public CourseWizard(@Nullable Project project) {
         super("Start new TMC course", project);
+        this.project = project;
+
         tmcApi = new TmcApi();
         addStep(new AccountConfigStep(this));
         addStep(new CourseSelectionStep(this));
