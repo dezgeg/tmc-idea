@@ -2,6 +2,7 @@ package fi.iki.dezgeg.tmc.idea.integration;
 
 import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.project.Project;
+import fi.helsinki.cs.tmc.core.Core;
 import org.jetbrains.annotations.NotNull;
 
 public class TmcProjectComponent implements ProjectComponent {
@@ -26,6 +27,8 @@ public class TmcProjectComponent implements ProjectComponent {
 
     public void projectOpened() {
         System.out.println("Hello world from TmcProjectComponent: " + project);
+        Core.setErrorHandler(new IdeaTmcErrorHandler());
+        Core.setTaskRunner(new IdeaTmcTaskRunner());
     }
 
     public void projectClosed() {

@@ -1,5 +1,8 @@
 package fi.iki.dezgeg.tmc.idea.gui;
 
+import fi.helsinki.cs.tmc.core.Core;
+import fi.helsinki.cs.tmc.core.services.DomainUtil;
+
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -26,6 +29,11 @@ public class CourseSelectionStep extends CourseWizardStep {
             model.addElement(course);
         }
         courseListbox.setModel(model);
+
+        Core.getUpdater().updateCourses();
+        for (String courseName : DomainUtil.getCourseNames(Core.getCourseDAO().getCourses())) {
+            System.out.println("Course names from plugin-core: " + courseName);
+        }
     }
 
     @Override

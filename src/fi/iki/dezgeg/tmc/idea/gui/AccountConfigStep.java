@@ -2,6 +2,8 @@ package fi.iki.dezgeg.tmc.idea.gui;
 
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Pair;
+import fi.helsinki.cs.tmc.core.Core;
+import fi.helsinki.cs.tmc.core.services.Settings;
 import fi.iki.dezgeg.tmc.api.TmcApi;
 import fi.iki.dezgeg.tmc.api.TmcException;
 
@@ -34,8 +36,15 @@ public class AccountConfigStep extends CourseWizardStep {
 
     @Override
     public boolean validate() {
-        wizard.tmcApi.setCredentials(TmcApi.DEFAULT_SERVERS.get(serverCombobox.getSelectedIndex()).second,
-                usernameTextField.getText(), new String(passwordTextField.getPassword()));
+        Settings settings = Core.getSettings();
+        String server = TmcApi.DEFAULT_SERVERS.get(serverCombobox.getSelectedIndex()).second;
+
+        wizard.tmcApi.setCredentials(server, usernameTextField.getText(), String.valueOf(passwordTextField.getPassword()));
+        settings.setUsername(usernameTextField.getText());
+        settings.setPassword(String.valueOf(passwordTextField.getPassword()));
+        settings.setServerBaseUrl(server);
+        settings.setExerciseFilePath("/tmp/bar/"); // FIXME - not here
+
         try {
             wizard.courseList = wizard.tmcApi.getCourses();
         } catch (TmcException tmce) {
