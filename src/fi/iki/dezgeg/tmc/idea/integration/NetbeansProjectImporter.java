@@ -78,7 +78,7 @@ public class NetbeansProjectImporter {
                     @Override
                     public boolean process(PsiClass psiClass) {
                         if (PsiMethodUtil.hasMainMethod(psiClass)) {
-                            createRunMainConfigurationForClass(exerciseName, psiClass);
+                            createRunMainConfigurationForClass(psiClass);
                             return false;
                         }
                         return true;
@@ -134,7 +134,7 @@ public class NetbeansProjectImporter {
         return retModule[0];
     }
 
-    private void createRunMainConfigurationForClass(String exerciseName, PsiClass mainClass) {
+    private void createRunMainConfigurationForClass(PsiClass mainClass) {
         RunnerAndConfigurationSettings runTestsConfiguration =
                 runManager.createRunConfiguration("Run " + exerciseName, appFactory);
         Element e = new Element("configuration");

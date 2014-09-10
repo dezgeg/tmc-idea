@@ -3,7 +3,6 @@ package fi.iki.dezgeg.tmc.idea;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
@@ -14,8 +13,6 @@ import fi.iki.dezgeg.tmc.api.TmcApi;
 import java.util.Map;
 
 public class DownloadAction extends AnAction {
-    Logger LOG = Logger.getInstance(DownloadAction.class);
-
     @Override
     public void actionPerformed(AnActionEvent e) {
         Project project = e.getData(PlatformDataKeys.PROJECT);

@@ -4,7 +4,6 @@ import com.intellij.execution.RunManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
@@ -21,8 +20,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 public class DoStuffAction extends AnAction {
-    Logger LOG = Logger.getInstance(DoStuffAction.class);
-
     @Override
     public void actionPerformed(AnActionEvent e) {
         final Project project = e.getData(PlatformDataKeys.PROJECT);
