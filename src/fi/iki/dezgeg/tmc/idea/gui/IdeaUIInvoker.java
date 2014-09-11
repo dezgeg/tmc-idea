@@ -12,8 +12,7 @@ import java.util.List;
 public class IdeaUIInvoker implements IdeUIInvoker {
     @Override
     public void invokeTestResultWindow(List<TestCaseResult> testCaseResults) {
-        // TODO - just don't crash
-        // throw new RuntimeException("Not implemented!");
+        TestResultsToolWindowFactory.getInstance().showTestResults(testCaseResults);
     }
 
     @Override

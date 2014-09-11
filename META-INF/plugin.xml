@@ -21,7 +21,9 @@
     -->
 
     <extensions defaultExtensionNs="com.intellij">
-        <!-- Add your extensions here -->
+             
+        <toolWindow id="TMC.ToolWindows.TestResults" anchor="bottom"
+                    factoryClass="fi.iki.dezgeg.tmc.idea.gui.TestResultsToolWindowFactory"/>
     </extensions>
 
     <application-components>
