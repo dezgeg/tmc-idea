@@ -62,7 +62,7 @@ public class ExerciseSelectorDialog extends DialogWrapper {
 
         DownloaderTask task = new DownloaderTask(new ProjectDownloader(Core.getServerManager()),
                 new IdeaProjectOpener(project), selectedExercises, Core.getProjectDAO(), Core.getSettings(),
-                new IdeaUIInvoker(), Core.getIOFactory());
+                new IdeaUIInvoker(project), Core.getIOFactory());
         Core.getTaskRunner().runTask(task);
     }
 }

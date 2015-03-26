@@ -25,17 +25,18 @@ public class SubmitAction extends AnAction {
         Project ideaProject = e.getData(PlatformDataKeys.PROJECT);
         Editor editor = e.getData(PlatformDataKeys.EDITOR);
         if (editor == null) {
-            Messages.showErrorDialog("No editor window selected!", "Cannot upload");
+            // FIXME - try harder to determine focused editor
+            Messages.showErrorDialog("No editor window selected!", "Cannot Upload");
             return;
         }
         Document document = editor.getDocument();
 
         VirtualFile virtualFile = FileDocumentManager.getInstance().getFile(document);
         // Module module = ModuleUtil.findModuleForFile(virtualFile, ideaProject);
-        String openFilePath = virtualFile.getPath();
+        String openFilePath = virtualFile.getPath(); // XXX test non-fs files
         ProjectUploader uploader = new ProjectUploader(Core.getServerManager());
 
-        final IdeaUIInvoker uiInvoker = new IdeaUIInvoker();
+        final IdeaUIInvoker uiInvoker = new IdeaUIInvoker(ideaProject);
         final UploaderTask task = new UploaderTask(uploader, openFilePath, Core.getProjectDAO(), uiInvoker);
         BackgroundTaskListener taskListener = new BackgroundTaskListener() {
             @Override

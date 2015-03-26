@@ -1,6 +1,7 @@
 package fi.iki.dezgeg.tmc.idea.gui;
 
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import fi.helsinki.cs.tmc.core.domain.Review;
 import fi.helsinki.cs.tmc.core.domain.SubmissionResult;
@@ -10,9 +11,15 @@ import fi.helsinki.cs.tmc.core.ui.IdeUIInvoker;
 import java.util.List;
 
 public class IdeaUIInvoker implements IdeUIInvoker {
+    private Project project;
+
+    public IdeaUIInvoker(Project project) {
+        this.project = project;
+    }
+
     @Override
     public void invokeTestResultWindow(List<TestCaseResult> testCaseResults) {
-        TestResultsToolWindowFactory.getInstance().showTestResults(testCaseResults);
+        TestResultsToolWindowFactory.showTestResults(project, testCaseResults);
     }
 
     @Override
@@ -38,12 +45,7 @@ public class IdeaUIInvoker implements IdeUIInvoker {
     }
 
     private void showMessage(final String messageStr, final String title) {
-        ApplicationManager.getApplication().invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                Messages.showInfoMessage(messageStr, title);
-            }
-        });
+        ApplicationManager.getApplication().invokeLater(() -> Messages.showInfoMessage(messageStr, title));
     }
 
     @Override
@@ -72,8 +74,8 @@ public class IdeaUIInvoker implements IdeUIInvoker {
     }
 
     @Override
-    public void raiseVisibleException(String s) {
-        throw new RuntimeException("Not implemented!");
+    public void raiseVisibleException(String message) {
+        ApplicationManager.getApplication().invokeLater(() -> Messages.showErrorDialog(message, "TMC Error"));
     }
 
     @Override

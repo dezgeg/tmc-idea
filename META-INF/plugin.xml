@@ -22,7 +22,7 @@
 
     <extensions defaultExtensionNs="com.intellij">
              
-        <toolWindow id="TMC.ToolWindows.TestResults" anchor="bottom"
+        <toolWindow id="TMC test results" anchor="bottom"
                     factoryClass="fi.iki.dezgeg.tmc.idea.gui.TestResultsToolWindowFactory"/>
     </extensions>
 
