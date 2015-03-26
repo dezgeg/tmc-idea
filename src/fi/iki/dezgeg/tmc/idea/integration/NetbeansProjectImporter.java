@@ -60,6 +60,7 @@ public class NetbeansProjectImporter {
             else if (type.getId().equals("Application"))
                 appType = type;
         }
+        // XXX: if JUnit plugin is disabled, this assert fires
         assert junitType != null && appType != null;
         assert junitType.getConfigurationFactories().length == 1;
         assert appType.getConfigurationFactories().length == 1;
