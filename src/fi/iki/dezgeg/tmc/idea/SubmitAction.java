@@ -26,7 +26,7 @@ public class SubmitAction extends AnAction {
         Editor editor = e.getData(PlatformDataKeys.EDITOR);
         if (editor == null) {
             // FIXME - try harder to determine focused editor
-            Messages.showErrorDialog("No editor window selected!", "Cannot Upload");
+            Messages.showErrorDialog("No editor window focused.", "Cannot Upload");
             return;
         }
         Document document = editor.getDocument();
@@ -36,7 +36,18 @@ public class SubmitAction extends AnAction {
         String openFilePath = virtualFile.getPath(); // XXX test non-fs files
         ProjectUploader uploader = new ProjectUploader(Core.getServerManager());
 
+        fi.helsinki.cs.tmc.core.domain.Project tmcProject = Core.getProjectDAO().getProjectByFile(openFilePath);
+        if (tmcProject == null) {
+            Messages.showErrorDialog("Focused file doesn't belong to a TMC project.", "Cannot Upload");
+            return;
+        }
+        if (tmcProject.getExercise().hasDeadlinePassed()) {
+            Messages.showErrorDialog("Deadline for this course has been passed.", "Cannot Upload");
+            return;
+        }
+
         final IdeaUIInvoker uiInvoker = new IdeaUIInvoker(ideaProject);
+        // FIXME[plugin-core]: UploaderTask shouldn't take a file path...
         final UploaderTask task = new UploaderTask(uploader, openFilePath, Core.getProjectDAO(), uiInvoker);
         BackgroundTaskListener taskListener = new BackgroundTaskListener() {
             @Override
